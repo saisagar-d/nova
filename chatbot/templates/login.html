@@ -1,0 +1,128 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - NOVA</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    <style>
+        body {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: black;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background 0.5s, color 0.5s;
+        }
+        body.dark-mode {
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            color: white;
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 320px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: inherit;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 20px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error-message {
+            color: #ff4d4d;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Login to NOVA</h2>
+    <form method="post" style="display: flex; flex-direction: column; align-items: flex-start;">
+        {% csrf_token %}
+        <div style="display: flex; align-items: center; margin-bottom: 15px; width: 100%;">
+            <label for="email" style="width: 80px; font-weight: bold; color: inherit;">E-mail</label>
+            <input id="email" type="email" name="email" placeholder="e.g. 1DT23CS189@dsatm.edu.in" required autocomplete="email" style="flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #ccc; font-size: 16px;">
+        </div>
+        <div style="display: flex; align-items: center; margin-bottom: 15px; width: 100%;">
+            <label for="password" style="width: 80px; font-weight: bold; color: inherit;">Password</label>
+            <input id="password" type="password" name="password" placeholder="Password" required autocomplete="current-password" style="flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #ccc; font-size: 16px;">
+        </div>
+        <button type="submit" style="align-self: center; padding: 12px 30px; border-radius: 20px; background-color: #4CAF50; color: white; font-size: 16px; cursor: pointer;">Login</button>
+    </form>
+    {% if error_message %}
+    <div class="error-message" id="error-message">{{ error_message }}</div>
+    <script>
+        // Blink effect for error message
+        const errorMessage = document.getElementById('error-message');
+        if (errorMessage) {
+            setInterval(() => {
+                if (errorMessage.style.visibility === 'hidden') {
+                    errorMessage.style.visibility = 'visible';
+                } else {
+                    errorMessage.style.visibility = 'hidden';
+                }
+            }, 500);
+        }
+
+        // Play alarm sound on error
+        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+        audio.play();
+    </script>
+    {% endif %}
+</div>
+
+<script>
+// Dark Mode Toggle
+function toggleMode() {
+    document.body.classList.toggle('dark-mode');
+    if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('mode', 'dark');
+    } else {
+        localStorage.setItem('mode', 'light');
+    }
+}
+
+// Keep Dark Mode State
+window.onload = function() {
+    if (localStorage.getItem('mode') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+};
+</script>
+
+</body>
+</html>
