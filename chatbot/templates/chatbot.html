@@ -102,7 +102,7 @@
 
 <button class="mode-toggle" onclick="toggleMode()">🌗</button>
 
-<header>NOVA</header>
+<header>{{ greeting }}</header>
 
 <!-- <div class="chat-container" id="chat-container">  
   {% if question %}
@@ -138,6 +138,7 @@
         </div>
     {% endif %}
 </div>
+
 
 
 
@@ -180,6 +181,7 @@ function typeWriter() {
 // If there is an answer, type it
 if (answer.length > 0) {
     document.getElementById('typing').style.display = 'none'; // hide typing
+    document.getElementById("answer").innerHTML = ""; // Clear previous answer
     function typeWriter() {
         if (index < answer.length) {
             document.getElementById("answer").innerHTML += answer.charAt(index);

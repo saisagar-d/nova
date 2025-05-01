@@ -5,14 +5,35 @@ from .models import FAQ
 from rapidfuzz import process
 import time
 import json
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import UserSession
+
+@login_required
+def chatbot_view(request):
+    user_session, created = UserSession.objects.get_or_create(user=request.user)
+    
+    if user_session.first_login:
+        greeting = "Hello! What's on your mind?"
+        user_session.first_login = False
+        user_session.save()
+    else:
+        greeting = "Welcome back! What would you like help with today?"
+    
+    return render(request, "chatbot.html", {"greeting": greeting})
+
+
 
 def chatbot(request):
     answer = ""
     show_spinner = False
     extra_data = None
+    user_question = None
+    greeting = None
 
     if request.method == "POST":
         user_question = request.POST.get('question')
+        # Removed debug print for user_question
         show_spinner = True  # Show the spinner
 
         # Simulating processing delay (for spinner)
@@ -28,14 +49,25 @@ def chatbot(request):
             faq = FAQ.objects.get(question=match)
             answer = faq.answer
             extra_data = faq.extra_data
-
+            # Removed debug print for answer
         else:
             answer = "Sorry, I don't know the answer to that question yet."
             extra_data = None
+            # Removed debug print for no match
 
         show_spinner = False  # Hide the spinner after getting the answer
 
-    return render(request, 'chatbot.html', {'answer': answer, 'show_spinner': show_spinner , 'extra_data': extra_data })
+    # Add greeting logic from chatbot_view
+    if request.user.is_authenticated:
+        user_session, created = UserSession.objects.get_or_create(user=request.user)
+        if user_session.first_login:
+            greeting = "Hello! What's on your mind?"
+            user_session.first_login = False
+            user_session.save()
+        else:
+            greeting = "Welcome back! What would you like help with today?"
+
+    return render(request, 'chatbot.html', {'answer': answer, 'show_spinner': show_spinner , 'extra_data': extra_data, 'user_question': user_question, 'greeting': greeting})
 
 def chatbot_api(request):
     if request.method == "POST":
