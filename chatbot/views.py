@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
 from .models import FAQ
-import difflib
+from rapidfuzz import process
 import time
 import json
 
@@ -20,12 +20,13 @@ def chatbot(request):
         faqs = FAQ.objects.all()
         questions = [faq.question for faq in faqs]
 
-        # Use difflib to find the best match
-        best_match = difflib.get_close_matches(user_question, questions, n=1, cutoff=0.5)
+        # Use rapidfuzz to find the best match
+        match, score, _ = process.extractOne(user_question, questions, score_cutoff=60)
 
-        if best_match:
-            faq = FAQ.objects.get(question=best_match[0])
+        if match:
+            faq = FAQ.objects.get(question=match)
             answer = faq.answer
+
         else:
             answer = "Sorry, I don't know the answer to that question yet."
 
@@ -44,17 +45,42 @@ def chatbot_api(request):
         faqs = FAQ.objects.all()
         questions = [faq.question for faq in faqs]
 
-        best_match = difflib.get_close_matches(user_question, questions, n=1, cutoff=0.5)
+        match, score, _ = process.extractOne(user_question, questions, score_cutoff=60)
 
-        if best_match:
-            faq = FAQ.objects.get(question=best_match[0])
+        if match:
+            faq = FAQ.objects.get(question=match)
             answer = faq.answer
         else:
             answer = "Sorry, I don't know the answer to that question yet."
 
+
         return JsonResponse({'answer': answer})
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+from django.views.decorators.csrf import csrf_exempt
+@csrf_exempt
+def add_faq_api(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            question = data.get('question', '').strip()
+            answer = data.get('answer', '').strip()
+            category = data.get('category', 'general').strip()
+            extra_data = data.get('extra_data', None)
+
+            if not question or not answer:
+                return JsonResponse({'error': 'Both question and answer are required.'}, status=400)
+
+            # Check if question already exists
+            if FAQ.objects.filter(question=question).exists():
+                return JsonResponse({'error': 'Question already exists.'}, status=409)
+
+            FAQ.objects.create(question=question, answer=answer, category=category, extra_data=extra_data)
+            return JsonResponse({'message': 'FAQ added successfully.'}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
 import re
 from django.contrib.auth.models import User
