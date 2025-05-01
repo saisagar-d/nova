@@ -9,6 +9,7 @@ import json
 def chatbot(request):
     answer = ""
     show_spinner = False
+    extra_data = None
 
     if request.method == "POST":
         user_question = request.POST.get('question')
@@ -26,13 +27,15 @@ def chatbot(request):
         if match:
             faq = FAQ.objects.get(question=match)
             answer = faq.answer
+            extra_data = faq.extra_data
 
         else:
             answer = "Sorry, I don't know the answer to that question yet."
+            extra_data = None
 
         show_spinner = False  # Hide the spinner after getting the answer
 
-    return render(request, 'chatbot.html', {'answer': answer, 'show_spinner': show_spinner})
+    return render(request, 'chatbot.html', {'answer': answer, 'show_spinner': show_spinner , 'extra_data': extra_data })
 
 def chatbot_api(request):
     if request.method == "POST":

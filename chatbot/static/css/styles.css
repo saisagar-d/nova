@@ -61,3 +61,37 @@ p {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+.chat-container {
+    padding: 20px;
+}
+
+.user-message, .bot-message {
+    max-width: 60%;
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 20px;
+    font-size: 16px;
+}
+
+.user-message {
+    background-color: #f1f1f1;
+    align-self: flex-start;
+    margin-left: 10px;
+}
+
+.bot-message {
+    background-color: #e0f7fa;
+    align-self: flex-end;
+    margin-right: 10px;
+    color: #333;
+}
+
+.extra-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #444;
+}
+
+

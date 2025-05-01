@@ -104,7 +104,7 @@
 
 <header>NOVA</header>
 
-<div class="chat-container" id="chat-container">
+<!-- <div class="chat-container" id="chat-container">  
   {% if question %}
   <div class="message user-message">{{ question }}</div>
   {% endif %}
@@ -112,7 +112,33 @@
   <div class="message bot-message" id="answer"></div>
   {% endif %}
   <div id="typing"></div>
+</div> -->
+
+<div class="chat-container">
+    {% if user_question %}
+        <!-- User Message -->
+        <div class="user-message">
+            {{ user_question }}
+        </div>
+    {% endif %}
+
+    {% if answer %}
+        <!-- Bot Answer -->
+        <div class="bot-message">
+            {{ answer }}
+            {% if extra_data %}
+                <div class="extra-info">
+                    <ul>
+                        {% for key, value in extra_data.items %}
+                            <li><strong>{{ key }}:</strong> {{ value }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
+
 
 
 <form method="post">
