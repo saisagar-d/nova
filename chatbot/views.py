@@ -1,63 +1,98 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
-from .models import FAQ
-from rapidfuzz import process
-import time
-import json
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import UserSession
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
 
+from .models import FAQ, UserSession
+
+from rapidfuzz import process, fuzz
+import json
+import time
+import re
+
+# ----------------------------
+# LOGIN VIEW
+# ----------------------------
+def login_view(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        pattern = r'^1DT23CS\d+@dsatm\.edu\.in$'
+        if not re.match(pattern, email):
+            return render(request, 'login.html', {
+                'error_message': "Access denied",
+                'access_denied': True
+            })
+
+        try:
+            user_obj = User.objects.get(email=email)
+        except User.DoesNotExist:
+            try:
+                user_obj = User.objects.get(username=email)
+            except User.DoesNotExist:
+                return render(request, 'login.html', {
+                    'error_message': "User with this email does not exist."
+                })
+
+        user = authenticate(request, username=user_obj.username, password=password)
+        if user:
+            login(request, user)
+            return redirect('chatbot')
+        else:
+            return render(request, 'login.html', {
+                'error_message': "Invalid email or password."
+            })
+
+    return render(request, 'login.html')
+
+
+# ----------------------------
+# CHATBOT VIEW (GET + POST)
+# ----------------------------
 @login_required
-def chatbot_view(request):
-    user_session, created = UserSession.objects.get_or_create(user=request.user)
-    
-    if user_session.first_login:
-        greeting = "Hello! What's on your mind?"
-        user_session.first_login = False
-        user_session.save()
-    else:
-        greeting = "Welcome back! What would you like help with today?"
-    
-    return render(request, "chatbot.html", {"greeting": greeting})
-
-
-
 def chatbot(request):
     answer = ""
     show_spinner = False
     extra_data = None
     user_question = None
-    greeting = None
 
     if request.method == "POST":
-        user_question = request.POST.get('question')
-        # Removed debug print for user_question
-        show_spinner = True  # Show the spinner
+        user_question = request.POST.get('question', '').strip()
+        show_spinner = True
+        time.sleep(1)  # simulate loading delay
 
-        # Simulating processing delay (for spinner)
-        time.sleep(1)
+        faqs = list(FAQ.objects.all())
+        faq_map = {faq.question.strip().lower(): faq for faq in faqs}
+        questions = list(faq_map.keys())
+        input_question = user_question.lower()
 
-        faqs = FAQ.objects.all()
-        questions = [faq.question for faq in faqs]
+        # First try with partial_ratio (handles partial & typo)
+        match_result = process.extractOne(
+            input_question, questions, scorer=fuzz.partial_ratio, score_cutoff=70
+        )
 
-        # Use rapidfuzz to find the best match
-        match, score, _ = process.extractOne(user_question, questions, score_cutoff=60)
+        # Optional fallback with token_sort_ratio
+        if not match_result:
+            match_result = process.extractOne(
+                input_question, questions, scorer=fuzz.token_sort_ratio, score_cutoff=75
+            )
 
-        if match:
-            faq = FAQ.objects.get(question=match)
-            answer = faq.answer
-            extra_data = faq.extra_data
-            # Removed debug print for answer
+        if match_result:
+            matched_question = match_result[0]
+            matched_faq = faq_map[matched_question]
+            answer = matched_faq.answer
+            extra_data = matched_faq.extra_data
         else:
             answer = "Sorry, I don't know the answer to that question yet."
             extra_data = None
-            # Removed debug print for no match
 
-        show_spinner = False  # Hide the spinner after getting the answer
+        show_spinner = False
 
-    # Add greeting logic from chatbot_view
+    # Greeting logic
+    greeting = "Welcome!"
     if request.user.is_authenticated:
         user_session, created = UserSession.objects.get_or_create(user=request.user)
         if user_session.first_login:
@@ -67,33 +102,57 @@ def chatbot(request):
         else:
             greeting = "Welcome back! What would you like help with today?"
 
-    return render(request, 'chatbot.html', {'answer': answer, 'show_spinner': show_spinner , 'extra_data': extra_data, 'user_question': user_question, 'greeting': greeting})
+    return render(request, 'chatbot.html', {
+        'answer': answer,
+        'show_spinner': show_spinner,
+        'extra_data': extra_data,
+        'user_question': user_question,
+        'greeting': greeting,
+    })
 
+
+# ----------------------------
+# CHATBOT API (JSON POST)
+# ----------------------------
+@csrf_exempt
 def chatbot_api(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            user_question = data.get('question', '')
+            user_question = data.get('question', '').strip().lower()
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-        faqs = FAQ.objects.all()
-        questions = [faq.question for faq in faqs]
+        faqs = list(FAQ.objects.all())
+        faq_map = {faq.question.strip().lower(): faq for faq in faqs}
+        questions = list(faq_map.keys())
 
-        match, score, _ = process.extractOne(user_question, questions, score_cutoff=60)
+        # Try matching
+        match_result = process.extractOne(
+            user_question, questions, scorer=fuzz.partial_ratio, score_cutoff=70
+        )
 
-        if match:
-            faq = FAQ.objects.get(question=match)
-            answer = faq.answer
-        else:
-            answer = "Sorry, I don't know the answer to that question yet."
+        if not match_result:
+            match_result = process.extractOne(
+                user_question, questions, scorer=fuzz.token_sort_ratio, score_cutoff=75
+            )
 
+        if match_result:
+            matched_question = match_result[0]
+            matched_faq = faq_map[matched_question]
+            return JsonResponse({
+                'answer': matched_faq.answer,
+                'extra_data': matched_faq.extra_data
+            })
 
-        return JsonResponse({'answer': answer})
+        return JsonResponse({'answer': "Sorry, I don't know the answer to that question yet."})
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-from django.views.decorators.csrf import csrf_exempt
+
+# ----------------------------
+# ADD FAQ API (JSON POST)
+# ----------------------------
 @csrf_exempt
 def add_faq_api(request):
     if request.method == "POST":
@@ -107,46 +166,19 @@ def add_faq_api(request):
             if not question or not answer:
                 return JsonResponse({'error': 'Both question and answer are required.'}, status=400)
 
-            # Check if question already exists
-            if FAQ.objects.filter(question=question).exists():
+            if FAQ.objects.filter(question__iexact=question).exists():
                 return JsonResponse({'error': 'Question already exists.'}, status=409)
 
-            FAQ.objects.create(question=question, answer=answer, category=category, extra_data=extra_data)
+            FAQ.objects.create(
+                question=question,
+                answer=answer,
+                category=category,
+                extra_data=extra_data
+            )
+
             return JsonResponse({'message': 'FAQ added successfully.'}, status=201)
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-import re
-from django.contrib.auth.models import User
-
-def login_view(request):
-    if request.method == "POST":
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-
-        # Validate email format: 1DT23CS<number>@dsatm.edu.in
-        pattern = r'^1DT23CS\d+@dsatm\.edu\.in$'
-        if not re.match(pattern, email):
-            error_message = "Access denied"
-            return render(request, 'login.html', {'error_message': error_message, 'access_denied': True})
-
-        try:
-            user_obj = User.objects.get(email=email)
-        except User.DoesNotExist:
-            # Try to find user by username matching email (in case username is email)
-            try:
-                user_obj = User.objects.get(username=email)
-            except User.DoesNotExist:
-                error_message = "User with this email does not exist."
-                return render(request, 'login.html', {'error_message': error_message})
-
-        user = authenticate(request, username=user_obj.username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('chatbot')
-        else:
-            error_message = "Invalid email or password."
-            return render(request, 'login.html', {'error_message': error_message})
-    else:
-        return render(request, 'login.html')
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
