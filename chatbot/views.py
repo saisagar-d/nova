@@ -1,70 +1,134 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
-from .models import FAQ
-import difflib
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+from .models import FAQ, UserSession
+from sentence_transformers import SentenceTransformer, util
 import time
 import json
+import re
+import torch
 
+# Load SBERT model once
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# ----------------- Chatbot Web View -----------------
+@login_required
 def chatbot(request):
     answer = ""
     show_spinner = False
+    extra_data = None
+    user_question = None
 
     if request.method == "POST":
-        user_question = request.POST.get('question')
-        show_spinner = True  # Show the spinner
+        user_question = request.POST.get('question', '').strip()
+        show_spinner = True
+        time.sleep(1)  # simulate delay
 
-        # Simulating processing delay (for spinner)
-        time.sleep(1)
+        faqs = list(FAQ.objects.all())
+        db_questions = [faq.question for faq in faqs]
 
-        faqs = FAQ.objects.all()
-        questions = [faq.question for faq in faqs]
+        # Semantic similarity matching
+        db_embeddings = model.encode(db_questions, convert_to_tensor=True)
+        user_embedding = model.encode(user_question, convert_to_tensor=True)
+        cos_scores = util.pytorch_cos_sim(user_embedding, db_embeddings)[0]
 
-        # Use difflib to find the best match
-        best_match = difflib.get_close_matches(user_question, questions, n=1, cutoff=0.5)
+        top_result_idx = torch.argmax(cos_scores).item()
+        top_score = cos_scores[top_result_idx].item()
 
-        if best_match:
-            faq = FAQ.objects.get(question=best_match[0])
-            answer = faq.answer
+        if top_score > 0.6:  # adjust threshold if needed
+            matched_faq = faqs[top_result_idx]
+            answer = matched_faq.answer
+            extra_data = matched_faq.extra_data
         else:
             answer = "Sorry, I don't know the answer to that question yet."
 
-        show_spinner = False  # Hide the spinner after getting the answer
+        show_spinner = False
 
-    return render(request, 'chatbot.html', {'answer': answer, 'show_spinner': show_spinner})
+    # Greeting logic
+    greeting = "Welcome!"
+    if request.user.is_authenticated:
+        user_session, _ = UserSession.objects.get_or_create(user=request.user)
+        if user_session.first_login:
+            greeting = "Hello! What's on your mind?"
+            user_session.first_login = False
+            user_session.save()
+        else:
+            greeting = "Welcome back! What would you like help with today?"
 
+    return render(request, 'chatbot.html', {
+        'answer': answer,
+        'show_spinner': show_spinner,
+        'extra_data': extra_data,
+        'user_question': user_question,
+        'greeting': greeting,
+    })
+
+
+# ----------------- Chatbot API (POST) -----------------
+@csrf_exempt
 def chatbot_api(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            user_question = data.get('question', '')
+            user_question = data.get('question', '').strip()
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-        faqs = FAQ.objects.all()
-        questions = [faq.question for faq in faqs]
+        faqs = list(FAQ.objects.all())
+        db_questions = [faq.question for faq in faqs]
 
-        best_match = difflib.get_close_matches(user_question, questions, n=1, cutoff=0.5)
+        db_embeddings = model.encode(db_questions, convert_to_tensor=True)
+        user_embedding = model.encode(user_question, convert_to_tensor=True)
+        cos_scores = util.pytorch_cos_sim(user_embedding, db_embeddings)[0]
 
-        if best_match:
-            faq = FAQ.objects.get(question=best_match[0])
-            answer = faq.answer
-        else:
-            answer = "Sorry, I don't know the answer to that question yet."
+        top_result_idx = torch.argmax(cos_scores).item()
+        top_score = cos_scores[top_result_idx].item()
 
-        return JsonResponse({'answer': answer})
+        if top_score > 0.6:
+            matched_faq = faqs[top_result_idx]
+            return JsonResponse({
+                'answer': matched_faq.answer,
+                'extra_data': matched_faq.extra_data
+            })
+
+        return JsonResponse({'answer': "Sorry, I don't know the answer to that question yet."})
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-import re
-from django.contrib.auth.models import User
 
+# ----------------- Add FAQ via API -----------------
+@csrf_exempt
+def add_faq_api(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            question = data.get('question', '').strip()
+            answer = data.get('answer', '').strip()
+            category = data.get('category', 'general').strip()
+            extra_data = data.get('extra_data', None)
+
+            if not question or not answer:
+                return JsonResponse({'error': 'Both question and answer are required.'}, status=400)
+
+            if FAQ.objects.filter(question=question).exists():
+                return JsonResponse({'error': 'Question already exists.'}, status=409)
+
+            FAQ.objects.create(question=question, answer=answer, category=category, extra_data=extra_data)
+            return JsonResponse({'message': 'FAQ added successfully.'}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+
+# ----------------- Custom Login View -----------------
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        # Validate email format: 1DT23CS<number>@dsatm.edu.in
         pattern = r'^1DT23CS\d+@dsatm\.edu\.in$'
         if not re.match(pattern, email):
             error_message = "Access denied"
@@ -73,7 +137,6 @@ def login_view(request):
         try:
             user_obj = User.objects.get(email=email)
         except User.DoesNotExist:
-            # Try to find user by username matching email (in case username is email)
             try:
                 user_obj = User.objects.get(username=email)
             except User.DoesNotExist:
@@ -87,5 +150,5 @@ def login_view(request):
         else:
             error_message = "Invalid email or password."
             return render(request, 'login.html', {'error_message': error_message})
-    else:
-        return render(request, 'login.html')
+
+    return render(request, 'login.html')
