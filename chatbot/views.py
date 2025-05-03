@@ -56,7 +56,7 @@ def chatbot(request):
             user_session.first_login = False
             user_session.save()
         else:
-            greeting = "Welcome back! What would you like help with today?"
+            greeting = "Welcome back! Never forget who was there for you when no one else was..."
 
     return render(request, 'chatbot.html', {
         'answer': answer,
