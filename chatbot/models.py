@@ -14,6 +14,7 @@ class FAQ(models.Model):
 class UserSession(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_login = models.BooleanField(default=True)
+    default_password_changed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Session for {self.user.username}"
