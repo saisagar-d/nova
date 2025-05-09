@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/add-faq/', add_faq_api, name='add_faq_api'),
     path('api/csrf/', views.csrf_token_view, name='csrf_token'),
     path('api/user-info/', views.user_info_api, name='user_info_api'),
-    path('password-reset/', views.password_reset_view, name='password_reset'),
+    # Password reset URL is commented out to disable password reset functionality
+    # path('password-reset/', views.password_reset_view, name='password_reset'),
     path('logout/', views.logout_view, name='logout'),
 ]

@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
 import Chatbot from './components/Chatbot';
-import PasswordReset from './components/PasswordReset';
+// import PasswordReset from './components/PasswordReset';
 
 function App() {
   return (
@@ -10,7 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/chatbot" element={<Chatbot />} />
-        <Route path="/password-reset" element={<PasswordReset />} />
+        {/* <Route path="/password-reset" element={<PasswordReset />} /> */}
       </Routes>
     </Router>
   );
