@@ -137,12 +137,6 @@
     .mode-toggle:hover {
         background-color: #005a9e;
     }
-    #typing {
-        font-style: italic;
-        color: #666;
-        margin-left: 10px;
-        font-size: 14px;
-    }
     </style>
 </head>
 <body>
@@ -153,17 +147,15 @@
 
 <div class="chat-container" id="chat-container">  
     {% if user_question %}
-        <!-- User Message -->
         <div class="message user-message">
             {{ user_question }}
         </div>
     {% endif %}
 
     {% if answer %}
-        <!-- Bot Answer -->
         <div class="message bot-message" id="answer">
             {{ answer }}
-            {% if extra_data %}
+            {% if extra_data and extra_data.items %}
                 <div class="extra-info">
                     <ul>
                         {% for key, value in extra_data.items %}
@@ -171,6 +163,8 @@
                         {% endfor %}
                     </ul>
                 </div>
+            {% else %}
+                <p>No additional data available.</p>
             {% endif %}
         </div>
     {% endif %}
@@ -183,55 +177,15 @@
 </form>
 
 <script>
-// Dark Mode Toggle
 function toggleMode() {
     document.body.classList.toggle('dark-mode');
-    if (document.body.classList.contains('dark-mode')) {
-        localStorage.setItem('mode', 'dark');
-    } else {
-        localStorage.setItem('mode', 'light');
-    }
+    localStorage.setItem('mode', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
 }
-
-// Keep Dark Mode State
 window.onload = function() {
     if (localStorage.getItem('mode') === 'dark') {
         document.body.classList.add('dark-mode');
     }
 };
-
-// Typing animation and Bot response
-let answer = "{{ answer|escapejs }}";
-let index = 0;
-
-function typeWriter() {
-    if (index < answer.length) {
-        document.getElementById("answer").innerHTML += answer.charAt(index);
-        index++;
-        setTimeout(typeWriter, 20);
-    }
-}
-
-// If there is an answer, type it
-if (answer.length > 0) {
-    document.getElementById('typing').style.display = 'none'; // hide typing
-    document.getElementById("answer").innerHTML = ""; // Clear previous answer
-    function typeWriter() {
-        if (index < answer.length) {
-            document.getElementById("answer").innerHTML += answer.charAt(index);
-            index++;
-            setTimeout(typeWriter, 20);
-        }
-    }
-    typeWriter();
-} else {
-    // If answer not ready yet, show typing...
-    document.getElementById('typing').innerText = 'Bot is typing...';
-}
-
-// Auto Scroll to Bottom
-let chatContainer = document.getElementById('chat-container');
-chatContainer.scrollTop = chatContainer.scrollHeight;
 </script>
 
 </body>
