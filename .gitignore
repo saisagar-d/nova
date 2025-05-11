@@ -1,4 +1,17 @@
 env/
 *.pyc
 __pycache__/
-__pycache__/
+
+
+# Ignore Node.js modules
+node_modules/
+frontend/node_modules/
+
+# Ignore build files and maps
+*.map
+*.js.map
+*.jsx.map
+
+# Ignore SQLite database file (if not needed in version control)
+db.sqlite3
+

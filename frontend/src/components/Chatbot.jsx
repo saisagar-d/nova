@@ -153,7 +153,7 @@ const styles = {
     padding: '20px',
     boxSizing: 'border-box',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'white',
     borderRadius: '0',
     boxShadow: 'none',
     color: 'white',
