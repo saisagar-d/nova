@@ -51,7 +51,7 @@ def chatbot(request):
         if top_score > 0.6:  # adjust threshold if needed
             matched_faq = faqs[top_result_idx]
             answer = matched_faq.answer
-            extra_data = matched_faq.extra_data
+            extra_data = matched_faq.extra_data or {}
         else:
             answer = "Sorry, I don't know the answer to that question yet."
 

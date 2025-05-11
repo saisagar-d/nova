@@ -41,7 +41,7 @@ const Chatbot = () => {
         body: JSON.stringify({ question: input }),
       });
       const data = await response.json();
-      const botMessage = { sender: 'bot', text: data.answer || 'Sorry, no answer.' };
+      const botMessage = { sender: 'bot', text: data.answer || 'Sorry, no answer.', extra_data: data.extra_data || null };
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       const errorMessage = { sender: 'bot', text: 'Error contacting chatbot API.' };
@@ -103,19 +103,28 @@ const Chatbot = () => {
         </div>
       )}
       <div style={styles.chatBox}>
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            style={{
-              ...styles.message,
-              alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-              backgroundColor: msg.sender === 'user' ? '#4CAF50' : '#e0e0e0',
-              color: msg.sender === 'user' ? 'white' : 'black',
-            }}
-          >
-            {msg.text}
-          </div>
-        ))}
+{messages.map((msg, idx) => (
+  <div
+    key={idx}
+    style={{
+      ...styles.message,
+      alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+      backgroundColor: msg.sender === 'user' ? '#f5f5f5' : 'white',
+      color: 'black',
+    }}
+  >
+    {msg.text}
+    {msg.extra_data && (
+      <div style={styles.extraInfo}>
+        <ul>
+          {Object.entries(msg.extra_data).map(([key, value]) =>
+            value ? <li key={key}><strong>{key}:</strong> {value}</li> : null
+          )}
+        </ul>
+      </div>
+    )}
+  </div>
+))}
         {loading && <div style={styles.loading}>Loading...</div>}
       </div>
       <textarea
@@ -156,7 +165,7 @@ const styles = {
     background: 'white',
     borderRadius: '0',
     boxShadow: 'none',
-    color: 'white',
+    color: 'black',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -186,7 +195,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
-    backgroundColor: 'transparent',
+    backgroundColor: 'white',
     color: 'black',
     /* Hide scrollbar for Chrome, Safari and Opera */
     '&::-webkit-scrollbar': {
@@ -194,9 +203,10 @@ const styles = {
     },
   },
   message: {
-    padding: '10px 15px',
+    padding: '8px 16px',
     borderRadius: '20px',
     maxWidth: '70%',
+    color: 'black',
   },
   loading: {
     fontStyle: 'italic',
@@ -204,7 +214,7 @@ const styles = {
   },
   textarea: {
     width: '80%',
-    height: '40px',
+    height: '70px',
     marginTop: '10px',
     padding: '10px',
     borderRadius: '10px',
@@ -261,6 +271,15 @@ const styles = {
     padding: '10px 20px',
     borderRadius: '5px',
     cursor: 'pointer',
+  },
+  extraInfo: {
+    marginTop: '10px',
+    backgroundColor: 'whitesmoke',
+    borderRadius: '12px',
+    padding: '12px 16px',
+    boxShadow: 'inset 0 0 8px rgba(0,0,0,0.05)',
+    fontSize: '14px',
+    color: 'black',
   },
 };
 

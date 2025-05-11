@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -159,7 +160,9 @@
                 <div class="extra-info">
                     <ul>
                         {% for key, value in extra_data.items %}
-                            <li><strong>{{ key }}:</strong> {{ value }}</li>
+                            {% if value %}
+                                <li><strong>{{ key }}:</strong> {{ value }}</li>
+                            {% endif %}
                         {% endfor %}
                     </ul>
                 </div>
