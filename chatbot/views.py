@@ -27,54 +27,8 @@ class FrontendAppView(TemplateView):
 # ----------------- Chatbot Web View -----------------
 @login_required
 def chatbot(request):
-    answer = ""
-    show_spinner = False
-    extra_data = None
-    user_question = None
-
-    if request.method == "POST":
-        user_question = request.POST.get('question', '').strip()
-        show_spinner = True
-        time.sleep(1)  # simulate delay
-
-        faqs = list(FAQ.objects.all())
-        db_questions = [faq.question for faq in faqs]
-
-        # Semantic similarity matching
-        db_embeddings = model.encode(db_questions, convert_to_tensor=True)
-        user_embedding = model.encode(user_question, convert_to_tensor=True)
-        cos_scores = util.pytorch_cos_sim(user_embedding, db_embeddings)[0]
-
-        top_result_idx = torch.argmax(cos_scores).item()
-        top_score = cos_scores[top_result_idx].item()
-
-        if top_score > 0.6:  # adjust threshold if needed
-            matched_faq = faqs[top_result_idx]
-            answer = matched_faq.answer
-            extra_data = matched_faq.extra_data or {}
-        else:
-            answer = "Sorry, I don't know the answer to that question yet."
-
-        show_spinner = False
-
-    # Greeting logic
-    greeting = "NOVA"
-    if request.user.is_authenticated:
-        user_session, _ = UserSession.objects.get_or_create(user=request.user)
-        if user_session.first_login:
-            greeting = "Hello! What's on your mind?"
-            user_session.first_login = False
-            user_session.save()
-        else:
-            greeting = "Welcome back! Never forget who was there for you when no one else was..."
-
-    return render(request, 'chatbot.html', {
-        'answer': answer,
-        'show_spinner': show_spinner,
-        'extra_data': extra_data,
-        'user_question': user_question,
-        'greeting': greeting,
-    })
+    # Removed Django template rendering to use React frontend only
+    pass
 
 # ----------------- Logout View -----------------
 @login_required
@@ -150,7 +104,8 @@ def login_view(request):
         pattern = r'^1DT23CS\d+@dsatm\.edu\.in$'
         if not re.match(pattern, email):
             error_message = "Access denied"
-            return render(request, 'index.html', {'error_message': error_message, 'access_denied': True})
+            # return render(request, 'index.html', {'error_message': error_message, 'access_denied': True})
+            return render(request, 'index.html')
 
         try:
             user_obj = User.objects.get(email=email)
@@ -159,7 +114,8 @@ def login_view(request):
                 user_obj = User.objects.get(username=email)
             except User.DoesNotExist:
                 error_message = "User with this email does not exist."
-                return render(request, 'index.html', {'error_message': error_message})
+                # return render(request, 'index.html', {'error_message': error_message})
+                return render(request, 'index.html')
 
         user = authenticate(request, username=user_obj.username, password=password)
         if user is not None:
@@ -173,8 +129,10 @@ def login_view(request):
             return redirect('chatbot')
         else:
             error_message = "Invalid email or password."
-            return render(request, 'index.html', {'error_message': error_message})
+            # return render(request, 'index.html', {'error_message': error_message})
+            return render(request, 'index.html')
 
+    # return render(request, 'index.html')
     return render(request, 'index.html')
 
 # ----------------- CSRF Token View -----------------
@@ -251,13 +209,14 @@ def chatbot(request):
         else:
             greeting = "Welcome back! Never forget who was there for you when no one else was..."
 
-    return render(request, 'chatbot.html', {
-        'answer': answer,
-        'show_spinner': show_spinner,
-        'extra_data': extra_data,
-        'user_question': user_question,
-        'greeting': greeting,
-    })
+    # return render(request, 'chatbot.html', {
+    #     'answer': answer,
+    #     'show_spinner': show_spinner,
+    #     'extra_data': extra_data,
+    #     'user_question': user_question,
+    #     'greeting': greeting,
+    # })
+    return render(request, 'index.html')
 
 # ----------------- Logout View -----------------
 @login_required

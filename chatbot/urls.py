@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 from .views import add_faq_api
 
+from django.urls import re_path
+
 urlpatterns = [
     path('', views.FrontendAppView.as_view(), name='home'),
     path('login/', views.login_view, name='login'),
@@ -14,4 +16,7 @@ urlpatterns = [
     # Password reset URL is commented out to disable password reset functionality
     # path('password-reset/', views.password_reset_view, name='password_reset'),
     path('logout/', views.logout_view, name='logout'),
+
+    # Catch-all pattern to serve React frontend for unmatched routes
+    re_path(r'^(?:.*)/?$', views.FrontendAppView.as_view(), name='react-catchall'),
 ]
