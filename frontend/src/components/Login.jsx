@@ -113,6 +113,7 @@ const Login = () => {
 
 const styles = {
   container: {
+<<<<<<< HEAD
     background: 'rgba(255, 255, 255, 0.25)',
     padding: '40px',
     borderRadius: '25px',
@@ -121,10 +122,21 @@ const styles = {
     WebkitBackdropFilter: 'blur(12px)',
     border: '1px solid rgba(255, 255, 255, 0.3)',
     width: '360px',
+=======
+    background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
+    padding: '40px',
+    borderRadius: '20px',
+    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    border: '1px solid rgba(255, 255, 255, 0.18)',
+    width: '340px',
+>>>>>>> 8dffa8f51cdb64d728527f3abea02d9af400fbae
     margin: 'auto',
     marginTop: '10vh',
     textAlign: 'center',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+<<<<<<< HEAD
     color: '#222',
     animation: 'fadeIn 1s ease-in-out',
   },
@@ -132,16 +144,29 @@ const styles = {
     marginBottom: '25px',
     fontSize: '24px',
     fontWeight: '700',
+=======
+    color: '#f3f3f3',
+    animation: 'fadeInUp 0.7s',
+  },
+  title: {
+    marginBottom: '20px',
+    color: '#a18cd1',
+    fontWeight: 700,
+    letterSpacing: '1px',
+    fontSize: '1.7em',
+>>>>>>> 8dffa8f51cdb64d728527f3abea02d9af400fbae
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'stretch',
+    gap: '10px',
   },
   label: {
     fontWeight: '700',
     marginBottom: '8px',
     textAlign: 'left',
+<<<<<<< HEAD
     color: '#333',
   },
   input: {
@@ -160,10 +185,30 @@ const styles = {
     padding: '14px 18px',
     borderRadius: '25px',
     background: 'linear-gradient(90deg, #ff6ea1, #d47aff)',
+=======
+    color: '#f3f3f3',
+  },
+  input: {
+    padding: '12px 15px',
+    marginBottom: '10px',
+    borderRadius: '20px',
+    border: '1px solid #444',
+    fontSize: '16px',
+    background: 'rgba(255,255,255,0.08)',
+    color: '#f3f3f3',
+    outline: 'none',
+    transition: 'border 0.2s, background 0.2s',
+  },
+  button: {
+    padding: '12px 15px',
+    borderRadius: '20px',
+    background: 'linear-gradient(90deg, #667eea 60%, #764ba2 100%)',
+>>>>>>> 8dffa8f51cdb64d728527f3abea02d9af400fbae
     color: 'white',
     fontSize: '18px',
     cursor: 'pointer',
     border: 'none',
+<<<<<<< HEAD
     fontWeight: '700',
     transition: 'background 0.3s ease',
   },
@@ -178,6 +223,26 @@ const styles = {
   '@keyframes fadeIn': {
     from: { opacity: 0, transform: 'translateY(-20px)' },
     to: { opacity: 1, transform: 'translateY(0)' },
+=======
+    fontWeight: 600,
+    marginTop: '10px',
+    boxShadow: '0 2px 8px rgba(76, 99, 255, 0.10)',
+    transition: 'background 0.3s',
+  },
+  error: {
+    color: '#ff4d4d',
+    marginTop: '10px',
+    fontWeight: 'bold',
+    animation: 'blink 1s infinite',
+  },
+  '@keyframes fadeInUp': {
+    from: { opacity: 0, transform: 'translateY(40px)' },
+    to: { opacity: 1, transform: 'translateY(0)' },
+  },
+  '@keyframes blink': {
+    '0%,100%': { opacity: 1 },
+    '50%': { opacity: 0.3 },
+>>>>>>> 8dffa8f51cdb64d728527f3abea02d9af400fbae
   },
 };
 
