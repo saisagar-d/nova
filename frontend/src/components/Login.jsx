@@ -113,16 +113,6 @@ const Login = () => {
 
 const styles = {
   container: {
-<<<<<<< HEAD
-    background: 'rgba(255, 255, 255, 0.25)',
-    padding: '40px',
-    borderRadius: '25px',
-    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-    width: '360px',
-=======
     background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
     padding: '40px',
     borderRadius: '20px',
@@ -131,20 +121,10 @@ const styles = {
     WebkitBackdropFilter: 'blur(8px)',
     border: '1px solid rgba(255, 255, 255, 0.18)',
     width: '340px',
->>>>>>> 8dffa8f51cdb64d728527f3abea02d9af400fbae
     margin: 'auto',
     marginTop: '10vh',
     textAlign: 'center',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-<<<<<<< HEAD
-    color: '#222',
-    animation: 'fadeIn 1s ease-in-out',
-  },
-  title: {
-    marginBottom: '25px',
-    fontSize: '24px',
-    fontWeight: '700',
-=======
     color: '#f3f3f3',
     animation: 'fadeInUp 0.7s',
   },
@@ -154,7 +134,6 @@ const styles = {
     fontWeight: 700,
     letterSpacing: '1px',
     fontSize: '1.7em',
->>>>>>> 8dffa8f51cdb64d728527f3abea02d9af400fbae
   },
   form: {
     display: 'flex',
@@ -166,26 +145,6 @@ const styles = {
     fontWeight: '700',
     marginBottom: '8px',
     textAlign: 'left',
-<<<<<<< HEAD
-    color: '#333',
-  },
-  input: {
-    padding: '14px 18px',
-    marginBottom: '20px',
-    borderRadius: '25px',
-    border: '1.5px solid #bbb',
-    fontSize: '16px',
-    transition: 'border-color 0.3s ease',
-  },
-  inputFocus: {
-    borderColor: '#ff6ea1',
-    outline: 'none',
-  },
-  button: {
-    padding: '14px 18px',
-    borderRadius: '25px',
-    background: 'linear-gradient(90deg, #ff6ea1, #d47aff)',
-=======
     color: '#f3f3f3',
   },
   input: {
@@ -200,50 +159,23 @@ const styles = {
     transition: 'border 0.2s, background 0.2s',
   },
   button: {
-    padding: '12px 15px',
+    padding: '12px',
+    marginTop: '10px',
     borderRadius: '20px',
-    background: 'linear-gradient(90deg, #667eea 60%, #764ba2 100%)',
->>>>>>> 8dffa8f51cdb64d728527f3abea02d9af400fbae
-    color: 'white',
-    fontSize: '18px',
-    cursor: 'pointer',
     border: 'none',
-<<<<<<< HEAD
-    fontWeight: '700',
-    transition: 'background 0.3s ease',
-  },
-  buttonHover: {
-    background: 'linear-gradient(90deg, #d47aff, #ff6ea1)',
-  },
-  error: {
-    color: '#ff4d4d',
-    marginTop: '12px',
-    fontWeight: '700',
-  },
-  '@keyframes fadeIn': {
-    from: { opacity: 0, transform: 'translateY(-20px)' },
-    to: { opacity: 1, transform: 'translateY(0)' },
-=======
-    fontWeight: 600,
-    marginTop: '10px',
-    boxShadow: '0 2px 8px rgba(76, 99, 255, 0.10)',
-    transition: 'background 0.3s',
+    background: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'transform 0.2s, opacity 0.2s',
   },
   error: {
-    color: '#ff4d4d',
+    color: '#ff6b6b',
     marginTop: '10px',
-    fontWeight: 'bold',
-    animation: 'blink 1s infinite',
-  },
-  '@keyframes fadeInUp': {
-    from: { opacity: 0, transform: 'translateY(40px)' },
-    to: { opacity: 1, transform: 'translateY(0)' },
-  },
-  '@keyframes blink': {
-    '0%,100%': { opacity: 1 },
-    '50%': { opacity: 0.3 },
->>>>>>> 8dffa8f51cdb64d728527f3abea02d9af400fbae
-  },
+    fontSize: '14px',
+    textAlign: 'center',
+  }
 };
 
 export default Login;

@@ -6,8 +6,16 @@ const Chatbot = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isFirstVisit, setIsFirstVisit] = useState(true);
 
   useEffect(() => {
+    // Check if user has visited before
+    const hasVisited = localStorage.getItem('hasVisited');
+    setIsFirstVisit(!hasVisited);
+    if (!hasVisited) {
+      localStorage.setItem('hasVisited', 'true');
+    }
+
     // Fetch user info to check if logged in
     const fetchUserInfo = async () => {
       try {
@@ -26,6 +34,18 @@ const Chatbot = () => {
     };
     fetchUserInfo();
   }, []);
+
+  const getGreeting = () => {
+    if (isFirstVisit) {
+      return (
+        <div style={styles.greeting}>
+          <span style={styles.greetingName}>NOVA</span>
+          <p style={styles.greetingSubtext}>Your Campus AI Assistant</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -94,210 +114,225 @@ const Chatbot = () => {
 
   return (
     <div style={styles.container}>
-      <h1> WELCOME TO NOVA</h1>
-      {user && (
-        <div style={styles.accountIconContainer}>
-          <div style={styles.accountIcon} onClick={() => setShowLogoutConfirm(true)} title={`Logged in as ${user.username}`}>
-            &#128100;
+      <div style={styles.content}>
+        {getGreeting()}
+        <div style={styles.chatContainer}>
+          <div style={styles.chatBox}>
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                style={{
+                  ...styles.message,
+                  ...(msg.sender === 'user' ? styles.userMessage : styles.botMessage)
+                }}
+              >
+                <div style={styles.messageContent}>{msg.text}</div>
+                {msg.extra_data && (
+                  <div style={styles.extraInfo}>
+                    <ul style={styles.extraInfoList}>
+                      {Object.entries(msg.extra_data).map(([key, value]) =>
+                        value ? <li key={key}><strong>{key}:</strong> {value}</li> : null
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ))}
+            {loading && <div style={styles.loadingContainer}>
+              <div style={styles.loadingDot}></div>
+              <div style={styles.loadingDot}></div>
+              <div style={styles.loadingDot}></div>
+            </div>}
+          </div>
+          <div style={styles.inputContainer}>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask NOVA anything..."
+              style={styles.input}
+              rows={1}
+            />
+            <button 
+              onClick={sendMessage} 
+              style={styles.sendButton}
+              disabled={loading}
+            >
+              Send
+            </button>
           </div>
         </div>
-      )}
-      <div style={styles.chatBox}>
-{messages.map((msg, idx) => (
-  <div
-    key={idx}
-    style={{
-      ...styles.message,
-      alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-      backgroundColor: msg.sender === 'user' ? '#f5f5f5' : 'white',
-      color: 'black',
-    }}
-  >
-    {msg.text}
-    {msg.extra_data && (
-      <div style={styles.extraInfo}>
-        <ul>
-          {Object.entries(msg.extra_data).map(([key, value]) =>
-            value ? <li key={key}><strong>{key}:</strong> {value}</li> : null
-          )}
-        </ul>
       </div>
-    )}
-  </div>
-))}
-        {loading && <div style={styles.loading}>Loading...</div>}
-      </div>
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Type your message..."
-        style={styles.textarea}
-      />
-      {/* Removed the send button as per request */}
-      {/* <button onClick={sendMessage} style={styles.button} disabled={loading}>
-        Send
-      </button> */}
-
-      {showLogoutConfirm && (
-        <div style={styles.logoutConfirmOverlay}>
-          <div style={styles.logoutConfirmBox}>
-            <p>Are you sure you want to logout?</p>
-            <div style={styles.logoutConfirmButtons}>
-              <button style={styles.logoutButton} onClick={handleLogout}>Yes</button>
-              <button style={styles.cancelButton} onClick={() => setShowLogoutConfirm(false)}>No</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
 const styles = {
   container: {
-    height: '100vh',
-    width: '100vw',
-    margin: 0,
-    padding: '20px',
-    boxSizing: 'border-box',
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
-    color: '#f3f3f3',
+    minHeight: '100vh',
+    width: '100%',
+    backgroundColor: '#f8f9fd',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-    animation: 'fadeInUp 0.7s',
+    padding: '2rem',
   },
-  accountIconContainer: {
-    position: 'absolute',
-    top: '20px',
-    right: '20px',
+  content: {
+    width: '100%',
+    maxWidth: '700px',
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2rem',
   },
-  accountIcon: {
-    fontSize: '24px',
-    cursor: 'pointer',
-    userSelect: 'none',
-    color: '#a18cd1',
-    background: 'rgba(255,255,255,0.08)',
-    borderRadius: '50%',
-    padding: '8px',
-    transition: 'background 0.2s',
+  greeting: {
+    textAlign: 'center',
+    marginBottom: '2rem',
+    animation: 'fadeIn 0.5s ease-in',
+  },
+  greetingName: {
+    fontSize: '3.5rem',
+    background: 'linear-gradient(45deg, #2b5876, #4e4376)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    fontWeight: 'bold',
+  },
+  greetingSubtext: {
+    fontSize: '1.2rem',
+    color: '#666',
+    marginTop: '0.5rem',
+  },
+  chatContainer: {
+    flex: 1,
+    width: '100%',
+    // maxWidth: '650px',
+    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    background: 'transparent',
+    padding: '1rem',
   },
   chatBox: {
-    border: 'none',
-    borderRadius: '20px',
-    padding: '24px',
     flex: 1,
-    width: '80%',
-    maxWidth: '600px',
-    minHeight: '400px',
-    overflowY: 'auto',
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
-    background: 'rgba(255,255,255,0.08)',
-    color: '#f3f3f3',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.17)',
-    marginBottom: '20px',
-    animation: 'fadeInUp 0.7s',
+    gap: '1rem',
+    minHeight: '500px',
+    maxHeight: '600px',
+    overflowY: 'auto',
+    scrollBehavior: 'smooth',
+    padding: '0.5rem',
+    msOverflowStyle: 'none', /* IE and Edge */
+    scrollbarWidth: 'none', /* Firefox */
+    '&::-webkit-scrollbar': {
+      display: 'none', /* Chrome, Safari and Opera */
+    },
   },
   message: {
-    padding: '10px 18px',
-    borderRadius: '20px',
-    maxWidth: '70%',
-    color: '#f3f3f3',
-    background: 'linear-gradient(90deg, #667eea 60%, #764ba2 100%)',
-    boxShadow: '0 2px 8px rgba(76, 99, 255, 0.10)',
-    alignSelf: 'flex-end',
-    animation: 'fadeInUp 0.5s',
-    transition: 'background 0.3s, color 0.3s',
-  },
-  loading: {
-    fontStyle: 'italic',
-    color: '#a18cd1',
-    alignSelf: 'center',
-    marginTop: '10px',
-    animation: 'blink 1s infinite',
-  },
-  textarea: {
-    width: '80%',
-    maxWidth: '600px',
-    height: '60px',
-    marginTop: '10px',
-    padding: '12px',
+    maxWidth: '80%',
+    padding: '1rem',
     borderRadius: '15px',
-    border: '1px solid #444',
-    fontSize: '16px',
-    resize: 'none',
-    background: 'rgba(255,255,255,0.08)',
-    color: '#f3f3f3',
-    outline: 'none',
-    transition: 'border 0.2s, background 0.2s',
+    fontSize: '1rem',
+    animation: 'slideIn 0.3s ease-out',
   },
-  logoutConfirmOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    height: '100vh',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+  messageContent: {
+    lineHeight: '1.5',
+  },
+  userMessage: {
+    alignSelf: 'flex-end',
+    background: 'linear-gradient(45deg, #2b5876, #4e4376)',
+    color: 'white',
+    boxShadow: 'none',
+  },
+  botMessage: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#f0f2f5',
+    color: '#202124',
+    boxShadow: 'none',
+  },
+  inputContainer: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    padding: '1rem',
+    borderTop: '1px solid rgba(0,0,0,0.05)',
+    marginTop: '1rem',
+  },
+  input: {
+    flex: 1,
+    padding: '1rem 1.5rem',
+    borderRadius: '12px',
+    border: '2px solid #eef0f7',
+    fontSize: '1rem',
+    resize: 'none',
+    outline: 'none',
+    transition: 'border-color 0.3s ease',
+    fontFamily: 'inherit',
+    backgroundColor: '#f8f9fd',
+    '&:focus': {
+      borderColor: '#2b5876',
+    },
+  },
+  sendButton: {
+    padding: '0.8rem 2rem',
+    borderRadius: '10px',
+    border: 'none',
+    background: 'linear-gradient(45deg, #2b5876, #4e4376)',
+    color: 'white',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    transition: 'transform 0.2s ease, opacity 0.2s ease',
+    boxShadow: '0 4px 15px rgba(43, 88, 118, 0.2)',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+    },
+    '&:disabled': {
+      opacity: 0.7,
+      cursor: 'not-allowed',
+    },
+  },
+  loadingContainer: {
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
+    gap: '0.5rem',
+    padding: '1rem',
   },
-  logoutConfirmBox: {
-    background: 'rgba(255,255,255,0.15)',
-    color: '#f3f3f3',
-    padding: '24px',
-    borderRadius: '16px',
-    textAlign: 'center',
-    minWidth: '300px',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.17)',
-  },
-  logoutConfirmButtons: {
-    marginTop: '15px',
-    display: 'flex',
-    justifyContent: 'space-around',
-    gap: '10px',
-  },
-  logoutButton: {
-    backgroundColor: '#d9534f',
-    color: 'white',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 600,
-  },
-  cancelButton: {
-    backgroundColor: '#5bc0de',
-    color: 'white',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 600,
+  loadingDot: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    backgroundColor: '#2b5876',
+    animation: 'bounce 0.5s ease infinite',
+    '&:nth-child(2)': {
+      animationDelay: '0.1s',
+    },
+    '&:nth-child(3)': {
+      animationDelay: '0.2s',
+    },
   },
   extraInfo: {
-    marginTop: '10px',
-    background: 'rgba(255,255,255,0.12)',
-    borderRadius: '12px',
-    padding: '12px 16px',
-    boxShadow: 'inset 0 0 8px rgba(0,0,0,0.05)',
-    fontSize: '14px',
-    color: '#f3f3f3',
+    marginTop: '0.8rem',
+    fontSize: '0.9rem',
+    opacity: 0.9,
   },
-  '@keyframes fadeInUp': {
-    from: { opacity: 0, transform: 'translateY(40px)' },
+  extraInfoList: {
+    margin: 0,
+    padding: 0,
+    listStyle: 'none',
+  },
+  '@keyframes fadeIn': {
+    from: { opacity: 0, transform: 'translateY(-20px)' },
     to: { opacity: 1, transform: 'translateY(0)' },
   },
-  '@keyframes blink': {
-    '0%,100%': { opacity: 1 },
-    '50%': { opacity: 0.3 },
+  '@keyframes slideIn': {
+    from: { opacity: 0, transform: 'translateY(10px)' },
+    to: { opacity: 1, transform: 'translateY(0)' },
+  },
+  '@keyframes bounce': {
+    '0%, 100%': { transform: 'translateY(0)' },
+    '50%': { transform: 'translateY(-5px)' },
   },
 };
 

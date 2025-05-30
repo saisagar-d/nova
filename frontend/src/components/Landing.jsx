@@ -26,7 +26,7 @@ const Landing = () => {
       <main style={styles.main}>
         <p style={styles.subheading}>Transform Ideas into Reality</p>
         <h1 style={styles.title}>
-          Examine the Potential of Genius’s{' '}
+          Examine the Potential of Genius's{' '}
           <span style={styles.highlightPink}>Campus </span>
           <span style={styles.highlightPurple}>ChatBot</span>
         </h1>

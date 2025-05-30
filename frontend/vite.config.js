@@ -4,19 +4,18 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: '../campusbot/static/frontend',
+    outDir: '../static/frontend',
     emptyOutDir: true,
   },
   server: {
     port: 3000,
-   
     proxy: {
-      '/login': {
+      '/api': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
       },
-      '/api': {
+      '/login': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
@@ -25,10 +24,7 @@ export default defineConfig({
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
-      },
-      },
-      },
-      
-      
-  },
-);
+      }
+    }
+  }
+});
