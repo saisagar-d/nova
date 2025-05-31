@@ -48,7 +48,7 @@ const Chatbot = () => {
       return (
         <div style={styles.greeting}>
           <span style={styles.greetingName}>NOVA</span>
-          <p style={styles.greetingSubtext}>Your Campus AI Assistant</p>
+          <p style={styles.greetingSubtext}>Your intelligent campus companion, ready to assist with any questions you have.</p>
         </div>
       );
     }
@@ -152,19 +152,23 @@ const Chatbot = () => {
         <div style={styles.chatContainer}>
           {messages.length === 0 ? (
             <div style={styles.emptyState}>
+              <div style={styles.greeting}>
+                <span style={styles.greetingName}>NOVA</span>
+                <p style={styles.greetingSubtext}>Your intelligent campus companion, ready to assist with any questions you have.</p>
+              </div>
               <h1 style={styles.emptyStateTitle}>How can I help you today?</h1>
               <div style={styles.suggestionGrid}>
                 <div style={styles.suggestionCard}>
-                  "Tell me about campus events"
+                  <span>🎓 Tell me about campus events</span>
                 </div>
                 <div style={styles.suggestionCard}>
-                  "What are the library hours?"
+                  <span>📚 What are the library hours?</span>
                 </div>
                 <div style={styles.suggestionCard}>
-                  "How do I register for classes?"
+                  <span>✍️ How do I register for classes?</span>
                 </div>
                 <div style={styles.suggestionCard}>
-                  "Where can I find academic resources?"
+                  <span>📝 Where can I find academic resources?</span>
                 </div>
               </div>
             </div>
@@ -337,29 +341,65 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
+    maxWidth: '800px',
+    margin: '0 auto',
+    marginTop: '2rem',
   },
   emptyStateTitle: {
-    fontSize: '2rem',
+    fontSize: '2.5rem',
     color: '#333',
-    marginBottom: '2rem',
+    marginBottom: '1.5rem',
     textAlign: 'center',
+    fontWeight: '600',
+    background: 'linear-gradient(120deg, #2b5876, #4e4376)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
   },
   suggestionGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '1rem',
-    maxWidth: '600px',
+    gap: '1.2rem',
+    maxWidth: '700px',
     width: '100%',
   },
   suggestionCard: {
-    padding: '1rem',
-    backgroundColor: '#f7f7f8',
-    borderRadius: '8px',
+    padding: '1.2rem',
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
     cursor: 'pointer',
-    transition: 'background-color 0.2s',
+    transition: 'all 0.3s ease',
+    border: '1px solid #e5e5e5',
+    fontSize: '1rem',
+    color: '#444',
+    display: 'flex',
+    alignItems: 'center',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
     '&:hover': {
-      backgroundColor: '#ececf1',
+      transform: 'translateY(-2px)',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+      borderColor: '#2b5876',
+      backgroundColor: '#f8f9fa',
     },
+  },
+  greeting: {
+    textAlign: 'center',
+    marginBottom: '2rem',
+  },
+  greetingName: {
+    fontSize: '3.5rem',
+    fontWeight: 'bold',
+    background: 'linear-gradient(120deg, #2b5876, #4e4376)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    display: 'block',
+    marginBottom: '1rem',
+  },
+  greetingSubtext: {
+    fontSize: '1.2rem',
+    color: '#666',
+    maxWidth: '500px',
+    margin: '0 auto',
+    lineHeight: '1.5',
   },
   messageList: {
     flex: 1,
