@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
@@ -7,6 +7,7 @@ const Chatbot = () => {
   const [user, setUser] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(true);
+  const messageListRef = useRef(null);
 
   useEffect(() => {
     // Check if user has visited before
@@ -34,6 +35,13 @@ const Chatbot = () => {
     };
     fetchUserInfo();
   }, []);
+
+  // Add auto-scroll effect when messages change
+  useEffect(() => {
+    if (messageListRef.current) {
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const getGreeting = () => {
     if (isFirstVisit) {
@@ -114,52 +122,120 @@ const Chatbot = () => {
 
   return (
     <div style={styles.container}>
-      <div style={styles.content}>
-        {getGreeting()}
-        <div style={styles.chatContainer}>
-          <div style={styles.chatBox}>
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                style={{
-                  ...styles.message,
-                  ...(msg.sender === 'user' ? styles.userMessage : styles.botMessage)
-                }}
-              >
-                <div style={styles.messageContent}>{msg.text}</div>
-                {msg.extra_data && (
-                  <div style={styles.extraInfo}>
-                    <ul style={styles.extraInfoList}>
-                      {Object.entries(msg.extra_data).map(([key, value]) =>
-                        value ? <li key={key}><strong>{key}:</strong> {value}</li> : null
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ))}
-            {loading && <div style={styles.loadingContainer}>
-              <div style={styles.loadingDot}></div>
-              <div style={styles.loadingDot}></div>
-              <div style={styles.loadingDot}></div>
-            </div>}
-          </div>
-          <div style={styles.inputContainer}>
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask NOVA anything..."
-              style={styles.input}
-              rows={1}
-            />
+      <div style={styles.sidebar}>
+        <div style={styles.logo}>
+          <span style={styles.logoText}>NOVA</span>
+        </div>
+        <div style={styles.sidebarContent}>
+          <button 
+            style={styles.newChatButton}
+            onClick={() => setMessages([])}
+          >
+            + New Chat
+          </button>
+        </div>
+        {user && (
+          <div style={styles.userSection}>
+            <div style={styles.userInfo}>
+              <div style={styles.userName}>{user.username}</div>
+            </div>
             <button 
-              onClick={sendMessage} 
-              style={styles.sendButton}
-              disabled={loading}
+              style={styles.logoutButton}
+              onClick={() => setShowLogoutConfirm(true)}
             >
-              Send
+              Logout
             </button>
+          </div>
+        )}
+      </div>
+      <div style={styles.mainContent}>
+        <div style={styles.chatContainer}>
+          {messages.length === 0 ? (
+            <div style={styles.emptyState}>
+              <h1 style={styles.emptyStateTitle}>How can I help you today?</h1>
+              <div style={styles.suggestionGrid}>
+                <div style={styles.suggestionCard}>
+                  "Tell me about campus events"
+                </div>
+                <div style={styles.suggestionCard}>
+                  "What are the library hours?"
+                </div>
+                <div style={styles.suggestionCard}>
+                  "How do I register for classes?"
+                </div>
+                <div style={styles.suggestionCard}>
+                  "Where can I find academic resources?"
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div 
+              ref={messageListRef}
+              style={styles.messageList}
+            >
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    ...styles.messageWrapper,
+                    ...(msg.sender === 'user' ? styles.userMessageWrapper : styles.botMessageWrapper)
+                  }}
+                >
+                  <div style={{
+                    ...styles.messageInner,
+                    ...(msg.sender === 'user' ? styles.userMessageInner : styles.botMessageInner)
+                  }}>
+                    <div style={styles.messageSender}>
+                      {msg.sender === 'user' ? 'You' : 'NOVA'}
+                    </div>
+                    <div style={styles.messageContent}>{msg.text}</div>
+                    {msg.extra_data && (
+                      <div style={{
+                        ...styles.extraInfo,
+                        backgroundColor: msg.sender === 'user' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+                      }}>
+                        <ul style={styles.extraInfoList}>
+                          {Object.entries(msg.extra_data).map(([key, value]) =>
+                            value ? <li key={key}><strong>{key}:</strong> {value}</li> : null
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div style={styles.loadingWrapper}>
+                  <div style={styles.loadingContainer}>
+                    <div style={styles.loadingDot}></div>
+                    <div style={styles.loadingDot}></div>
+                    <div style={styles.loadingDot}></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <div style={styles.inputSection}>
+            <div style={styles.inputWrapper}>
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Message NOVA..."
+                style={styles.input}
+                rows={1}
+              />
+              <button 
+                onClick={sendMessage} 
+                style={styles.sendButton}
+                disabled={loading || !input.trim()}
+              >
+                Send
+              </button>
+            </div>
+            <div style={styles.inputDisclaimer}>
+              NOVA may produce inaccurate information. Verify important information.
+            </div>
           </div>
         </div>
       </div>
@@ -169,166 +245,260 @@ const Chatbot = () => {
 
 const styles = {
   container: {
-    minHeight: '100vh',
-    width: '100%',
-    backgroundColor: '#f8f9fd',
+    height: '100vh',
+    width: '100vw',
+    display: 'flex',
+    backgroundColor: '#ffffff',
+  },
+  sidebar: {
+    width: '260px',
+    backgroundColor: '#202123',
+    color: '#ffffff',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    padding: '2rem',
+    padding: '1rem',
   },
-  content: {
+  logo: {
+    padding: '1rem',
+    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    marginBottom: '1rem',
+  },
+  logoText: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    background: 'linear-gradient(45deg, #70a1ff, #7bed9f)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  },
+  sidebarContent: {
+    flex: 1,
+  },
+  newChatButton: {
     width: '100%',
-    maxWidth: '700px',
+    padding: '0.75rem',
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: '6px',
+    backgroundColor: 'transparent',
+    color: '#ffffff',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    '&:hover': {
+      backgroundColor: 'rgba(255,255,255,0.1)',
+    },
+  },
+  userSection: {
+    borderTop: '1px solid rgba(255,255,255,0.1)',
+    padding: '1rem 0',
+  },
+  userInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginBottom: '0.5rem',
+  },
+  userName: {
+    fontSize: '0.9rem',
+    opacity: 0.8,
+  },
+  logoutButton: {
+    width: '100%',
+    padding: '0.5rem',
+    border: 'none',
+    borderRadius: '6px',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: '#ffffff',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    '&:hover': {
+      backgroundColor: 'rgba(255,255,255,0.2)',
+    },
+  },
+  mainContent: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: '2rem',
-  },
-  greeting: {
-    textAlign: 'center',
-    marginBottom: '2rem',
-    animation: 'fadeIn 0.5s ease-in',
-  },
-  greetingName: {
-    fontSize: '3.5rem',
-    background: 'linear-gradient(45deg, #2b5876, #4e4376)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    fontWeight: 'bold',
-  },
-  greetingSubtext: {
-    fontSize: '1.2rem',
-    color: '#666',
-    marginTop: '0.5rem',
+    height: '100vh',
+    overflow: 'hidden',
   },
   chatContainer: {
     flex: 1,
-    width: '100%',
-    // maxWidth: '650px',
-    margin: '0 auto',
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
-    background: 'transparent',
-    padding: '1rem',
+    maxWidth: '900px',
+    margin: '0 auto',
+    width: '100%',
+    position: 'relative',
+    height: '100%',
   },
-  chatBox: {
+  emptyState: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '2rem',
+  },
+  emptyStateTitle: {
+    fontSize: '2rem',
+    color: '#333',
+    marginBottom: '2rem',
+    textAlign: 'center',
+  },
+  suggestionGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
     gap: '1rem',
-    minHeight: '500px',
-    maxHeight: '600px',
-    overflowY: 'auto',
-    scrollBehavior: 'smooth',
-    padding: '0.5rem',
-    msOverflowStyle: 'none', /* IE and Edge */
-    scrollbarWidth: 'none', /* Firefox */
-    '&::-webkit-scrollbar': {
-      display: 'none', /* Chrome, Safari and Opera */
+    maxWidth: '600px',
+    width: '100%',
+  },
+  suggestionCard: {
+    padding: '1rem',
+    backgroundColor: '#f7f7f8',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    '&:hover': {
+      backgroundColor: '#ececf1',
     },
   },
-  message: {
-    maxWidth: '80%',
+  messageList: {
+    flex: 1,
+    overflow: 'auto',
     padding: '1rem',
-    borderRadius: '15px',
-    fontSize: '1rem',
-    animation: 'slideIn 0.3s ease-out',
+    scrollBehavior: 'smooth',
+    '&::-webkit-scrollbar': {
+      width: '8px',
+    },
+    '&::-webkit-scrollbar-track': {
+      background: '#f1f1f1',
+      borderRadius: '4px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: '#888',
+      borderRadius: '4px',
+      '&:hover': {
+        background: '#666',
+      },
+    },
+  },
+  messageWrapper: {
+    width: '100%',
+    padding: '0.5rem 0',
+    display: 'flex',
+    justifyContent: 'flex-start',
+  },
+  userMessageWrapper: {
+    backgroundColor: '#ffffff',
+    justifyContent: 'flex-end',
+  },
+  botMessageWrapper: {
+    // backgroundColor: '#f7f7f8',
+    justifyContent: 'flex-start',
+  },
+  messageInner: {
+    width: 'fit-content',
+    maxWidth: '70%',
+    padding: '0.6rem 1rem',
+    borderRadius: '12px',
+  },
+  userMessageInner: {
+    backgroundColor: '#2b5876',
+    color: 'white',
+  },
+  botMessageInner: {
+    backgroundColor: '#f0f2f5',
+    color: '#000',
+  },
+  messageSender: {
+    fontWeight: '600',
+    marginBottom: '0.2rem',
+    fontSize: '0.8rem',
   },
   messageContent: {
-    lineHeight: '1.5',
+    fontSize: '0.95rem',
+    lineHeight: '1.4',
+    whiteSpace: 'pre-wrap',
   },
-  userMessage: {
-    alignSelf: 'flex-end',
-    background: 'linear-gradient(45deg, #2b5876, #4e4376)',
-    color: 'white',
-    boxShadow: 'none',
-  },
-  botMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#f0f2f5',
-    color: '#202124',
-    boxShadow: 'none',
-  },
-  inputContainer: {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-    padding: '1rem',
-    borderTop: '1px solid rgba(0,0,0,0.05)',
-    marginTop: '1rem',
-  },
-  input: {
-    flex: 1,
-    padding: '1rem 1.5rem',
-    borderRadius: '12px',
-    border: '2px solid #eef0f7',
-    fontSize: '1rem',
-    resize: 'none',
-    outline: 'none',
-    transition: 'border-color 0.3s ease',
-    fontFamily: 'inherit',
-    backgroundColor: '#f8f9fd',
-    '&:focus': {
-      borderColor: '#2b5876',
-    },
-  },
-  sendButton: {
-    padding: '0.8rem 2rem',
-    borderRadius: '10px',
-    border: 'none',
-    background: 'linear-gradient(45deg, #2b5876, #4e4376)',
-    color: 'white',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    transition: 'transform 0.2s ease, opacity 0.2s ease',
-    boxShadow: '0 4px 15px rgba(43, 88, 118, 0.2)',
-    '&:hover': {
-      transform: 'translateY(-2px)',
-    },
-    '&:disabled': {
-      opacity: 0.7,
-      cursor: 'not-allowed',
-    },
+  loadingWrapper: {
+    width: '100%',
+    padding: '1rem 0',
+    backgroundColor: '#f7f7f8',
   },
   loadingContainer: {
+    maxWidth: '800px',
+    margin: '0 auto',
+    padding: '0 1rem',
     display: 'flex',
-    justifyContent: 'center',
     gap: '0.5rem',
-    padding: '1rem',
   },
   loadingDot: {
     width: '8px',
     height: '8px',
     borderRadius: '50%',
-    backgroundColor: '#2b5876',
+    backgroundColor: '#666',
     animation: 'bounce 0.5s ease infinite',
-    '&:nth-child(2)': {
-      animationDelay: '0.1s',
-    },
-    '&:nth-child(3)': {
-      animationDelay: '0.2s',
+  },
+  inputSection: {
+    borderTop: '1px solid #e5e5e5',
+    padding: '1rem',
+    backgroundColor: '#ffffff',
+  },
+  inputWrapper: {
+    maxWidth: '800px',
+    margin: '0 auto',
+    display: 'flex',
+    gap: '1rem',
+    backgroundColor: '#ffffff',
+    border: '1px solid #e5e5e5',
+    borderRadius: '8px',
+    padding: '0.75rem',
+  },
+  input: {
+    flex: 1,
+    border: 'none',
+    outline: 'none',
+    backgroundColor: 'transparent',
+    fontSize: '1rem',
+    resize: 'none',
+    fontFamily: 'inherit',
+    padding: '0',
+    '&::placeholder': {
+      color: '#999',
     },
   },
+  sendButton: {
+    padding: '0.5rem 1rem',
+    borderRadius: '6px',
+    border: 'none',
+    backgroundColor: '#2b5876',
+    color: 'white',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    '&:disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+    },
+    '&:not(:disabled):hover': {
+      backgroundColor: '#1e3f53',
+    },
+  },
+  inputDisclaimer: {
+    maxWidth: '800px',
+    margin: '0.5rem auto 0',
+    fontSize: '0.8rem',
+    color: '#666',
+    textAlign: 'center',
+  },
   extraInfo: {
-    marginTop: '0.8rem',
-    fontSize: '0.9rem',
-    opacity: 0.9,
+    marginTop: '1rem',
+    padding: '0.75rem',
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: '6px',
   },
   extraInfoList: {
     margin: 0,
     padding: 0,
     listStyle: 'none',
-  },
-  '@keyframes fadeIn': {
-    from: { opacity: 0, transform: 'translateY(-20px)' },
-    to: { opacity: 1, transform: 'translateY(0)' },
-  },
-  '@keyframes slideIn': {
-    from: { opacity: 0, transform: 'translateY(10px)' },
-    to: { opacity: 1, transform: 'translateY(0)' },
   },
   '@keyframes bounce': {
     '0%, 100%': { transform: 'translateY(0)' },
